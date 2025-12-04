@@ -1,23 +1,18 @@
-﻿using HttpClient client = new();
+﻿List<string> todoIds = ["35", "9"];
+using var client = new HttpClient();
 client.BaseAddress = new Uri("https://jsonplaceholder.typicode.com");
-var fetchTask1 = client.GetAsync("todos/1");
-var fetchTask2 = client.GetAsync("todos/8");
+using var tokenSource = new CancellationTokenSource();
+tokenSource.CancelAfter(5000);
+Dictionary<string, Task<string>> fetchTasks = todoIds.ToDictionary(
+    id => id, id => client.GetStringAsync($"todos/{id}", tokenSource.Token)
+    );
 try
 {
-    var results = await Task.WhenAll(fetchTask1, fetchTask2);
-    if (results.Any(r => !r.IsSuccessStatusCode))
+    await foreach (Task<string> task in Task.WhenEach(fetchTasks.Values))
     {
-        Console.WriteLine("Some fetches failed.");
-        Environment.Exit(1);
-    }
-    var responses = await Task.WhenAll(results.Select(
-        r => r.Content.ReadAsStringAsync()
-        ));
-    Console.WriteLine("Fetch results:");
-    foreach (var response in responses)
-    {
-        Console.WriteLine(response);
-    }
+       // TODO
+       
+    };
 }
 catch (HttpRequestException e) {
     Console.WriteLine("Fetch error occured:");
